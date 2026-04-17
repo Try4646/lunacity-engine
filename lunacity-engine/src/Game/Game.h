@@ -1,15 +1,25 @@
 #pragma once
+#include <vector>
+
+class GameObject;
+class Player;
+class Coin;
+class TextRenderer;
 
 class Game {
 private:
-    float playerX, playerY;
-    float playerWidth, playerHeight;
-    float speed;
-	int score;
+    GameObject* player;
+    std::vector<GameObject*> coins;
+    GameObject* scoreText;      
+    TextRenderer* textRenderer; 
+    int score;
 
 public:
     Game();
+    ~Game();
+
     void Update(float deltaTime);
     void Render();
-    void HandleInput();
+
+    int GetScore() const { return score; }
 };

@@ -41,7 +41,7 @@ void Engine::Run() {
 
         // Spiel-Logik updaten
         game->Update(deltaTime);
-        game->HandleInput();
+        //game->HandleInput();
 
         // Rendern
         glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
