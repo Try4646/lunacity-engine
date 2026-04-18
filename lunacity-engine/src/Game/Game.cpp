@@ -60,7 +60,7 @@ class CoinManager : public GameObject {
 public:
 	CoinManager() : GameObject("CoinSpawner") {
 		auto* coinSpawner = AddComponent<CoinSpawner>();
-        
+        //test
     }
 };
 
