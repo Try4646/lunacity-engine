@@ -9,6 +9,7 @@ class TextRenderer;
 class Game {
 private:
     GameObject* player;
+	GameObject* coinSpawner;
     std::vector<GameObject*> coins;
     GameObject* scoreText;      
     TextRenderer* textRenderer; 

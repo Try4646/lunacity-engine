@@ -6,9 +6,10 @@
 #include <fstream>
 #include <vector>
 #include <cstring>
+#include <cmath>
 
 #define STB_TRUETYPE_IMPLEMENTATION
-#include "../../includes/stb_truetype.h"  
+#include "../../includes/stb_truetype.h"
 
 struct FontData {
     unsigned char* buffer;
@@ -29,39 +30,72 @@ struct FontData {
 
 static bool LoadFont(FontData* data, float fontSize) {
     const char* paths[] = {
-        "Roboto-Italic-VariableFont_wdth,wght.ttf",
-        "../Roboto-Italic-VariableFont_wdth,wght.ttf",
-        "../../Roboto-Italic-VariableFont_wdth,wght.ttf",
-        "src/Font/Roboto-Italic-VariableFont_wdth,wght.ttf",
+        "Teko-Bold.ttf",
+        "../Teko-Bold.ttf",
+        "../../Teko-Bold.ttf",
+        "src/Font/Teko-Bold.ttf",
+        "../src/Font/Teko-Bold.ttf",
+        "Resources/Fonts/Teko-Bold.ttf",
+        "C:/Windows/Fonts/Arial.ttf"
     };
 
     std::ifstream file;
+    std::string loadedPath;
+
     for (const char* path : paths) {
         file.open(path, std::ios::binary | std::ios::ate);
-        if (file.is_open()) break;
+        if (file.is_open()) {
+            loadedPath = path;
+            break;
+        }
     }
 
-    if (!file.is_open()) return false;
+    if (!file.is_open()) {
+        printf("Failed to load font file! Tried paths:\n");
+        for (const char* path : paths) {
+            printf("  %s\n", path);
+        }
+        return false;
+    }
 
     std::streamsize size = file.tellg();
     file.seekg(0, std::ios::beg);
 
-    data->buffer = new unsigned char[size];
+    data->buffer = new unsigned char[size + 1];
     file.read((char*)data->buffer, size);
     file.close();
+
+    printf("Loaded font from: %s (size: %lld bytes)\n", loadedPath.c_str(), size);
+
+    // Create texture atlas
+    const int ATLAS_WIDTH = 512;
+    const int ATLAS_HEIGHT = 512;
+
+    unsigned char* bitmap = new unsigned char[ATLAS_WIDTH * ATLAS_HEIGHT];
+    memset(bitmap, 0, ATLAS_WIDTH * ATLAS_HEIGHT); // Clear bitmap
+
+    int result = stbtt_BakeFontBitmap(data->buffer, 0, fontSize, bitmap,
+        ATLAS_WIDTH, ATLAS_HEIGHT, 32, 96, data->chars);
+
+    if (result <= 0) {
+        printf("Failed to bake font bitmap! Error code: %d\n", result);
+        delete[] bitmap;
+        return false;
+    }
 
     glGenTextures(1, &data->texture);
     glBindTexture(GL_TEXTURE_2D, data->texture);
 
-    unsigned char* bitmap = new unsigned char[512 * 512];
-    stbtt_BakeFontBitmap(data->buffer, 0, fontSize, bitmap, 512, 512, 32, 96, data->chars);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, ATLAS_WIDTH, ATLAS_HEIGHT, 0,
+        GL_ALPHA, GL_UNSIGNED_BYTE, bitmap);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 512, 512, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bitmap);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     delete[] bitmap;
     data->initialized = true;
+
+    printf("Font loaded successfully!\n");
     return true;
 }
 
@@ -90,7 +124,14 @@ void TextRenderer::SetFontSize(float size) {
 void TextRenderer::Render() {
     if (!fontData || !fontData->initialized || !owner) return;
 
+    // Save current OpenGL state
+    glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT);
+    glPushMatrix();
+
     glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     glBindTexture(GL_TEXTURE_2D, fontData->texture);
     glColor4f(r, g, b, a);
 
@@ -102,7 +143,8 @@ void TextRenderer::Render() {
     for (char c : text) {
         if (c >= 32 && c <= 127) {
             stbtt_aligned_quad q;
-            stbtt_GetBakedQuad(fontData->chars, 512, 512, c - 32, &currentX, &currentY, &q, 1);
+            stbtt_GetBakedQuad(fontData->chars, 512, 512, c - 32,
+                &currentX, &currentY, &q, 1);
 
             glBegin(GL_QUADS);
             glTexCoord2f(q.s0, q.t0); glVertex2f(q.x0, q.y0);
@@ -113,5 +155,7 @@ void TextRenderer::Render() {
         }
     }
 
-    glDisable(GL_TEXTURE_2D);
+    // Restore OpenGL state
+    glPopMatrix();
+    glPopAttrib();
 }

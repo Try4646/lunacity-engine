@@ -6,6 +6,8 @@
 #include "../Engine/Input.h"
 #include <GLFW/glfw3.h>
 #include <string>
+#include "../Engine/Components/CoinSpawner.h"
+#include <iostream>
 
 class Player : public GameObject {
 public:
@@ -54,17 +56,34 @@ public:
     }
 };
 
-// Game Implementation
+class CoinManager : public GameObject {
+public:
+	CoinManager() : GameObject("CoinSpawner") {
+		auto* coinSpawner = AddComponent<CoinSpawner>();
+        
+    }
+};
+
 Game::Game() : score(0) {
     player = new Player();
+
+    coinSpawner = new CoinManager();
+
+    CoinSpawner* spawner = coinSpawner->GetComponent<CoinSpawner>();
+
+    if (!spawner) {
+        return;
+    }
+
+    spawner->coinsStorage = &coins;
     coins.push_back(new Coin(700, 100));
     coins.push_back(new Coin(100, 500));
     coins.push_back(new Coin(650, 450));
 
-    // NUR EINMAL hier erstellen, nicht in Render()!
     scoreText = new GameObject("ScoreText");
     scoreText->x = 20;
     scoreText->y = 50;
+
     textRenderer = scoreText->AddComponent<TextRenderer>();
     textRenderer->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
 }
@@ -77,8 +96,8 @@ Game::~Game() {
 
 void Game::Update(float deltaTime) {
     player->Update(deltaTime);
-
-    // Coin Kollision
+	coinSpawner->Update(deltaTime);
+    // collison
     for (auto* coin : coins) {
         if (coin->IsActive() &&
             player->x < coin->x + coin->width &&
@@ -88,7 +107,6 @@ void Game::Update(float deltaTime) {
             coin->SetActive(false);
             score++;
 
-            // Score Text aktualisieren
             textRenderer->SetText("Score: " + std::to_string(score));
         }
     }
@@ -103,7 +121,8 @@ void Game::Render() {
         }
     }
 
-    // Score Text rendern
+
+
     if (scoreText) {
         scoreText->Render();
     }

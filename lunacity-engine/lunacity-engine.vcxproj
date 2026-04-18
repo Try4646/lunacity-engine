@@ -140,6 +140,7 @@
   <ItemGroup>
     <ClCompile Include="src\core\main.cpp" />
     <ClCompile Include="src\Engine\Component.cpp" />
+    <ClCompile Include="src\Engine\Components\CoinSpawner.cpp" />
     <ClCompile Include="src\Engine\Components\TextRenderer.cpp" />
     <ClCompile Include="src\Engine\Engine.cpp" />
     <ClCompile Include="src\Engine\GameObject.cpp" />
@@ -153,6 +154,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine\Component.h" />
+    <ClInclude Include="src\Engine\Components\CoinSpawner.h" />
     <ClInclude Include="src\Engine\Components\TextRenderer.h" />
     <ClInclude Include="src\Engine\Engine.h" />
     <ClInclude Include="src\Engine\GameObject.h" />

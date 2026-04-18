@@ -42,6 +42,9 @@
     <ClCompile Include="src\Engine\Components\TextRenderer.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Components\CoinSpawner.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Library Include="src\lib\glfw3.lib" />
@@ -84,6 +87,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="src\includes\stb_truetype.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Components\CoinSpawner.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
