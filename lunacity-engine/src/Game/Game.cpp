@@ -60,7 +60,7 @@ class CoinManager : public GameObject {
 public:
 	CoinManager() : GameObject("CoinSpawner") {
 		auto* coinSpawner = AddComponent<CoinSpawner>();
-        //test
+            
     }
 };
 
@@ -68,14 +68,7 @@ Game::Game() : score(0) {
     player = new Player();
 
     coinSpawner = new CoinManager();
-
-    CoinSpawner* spawner = coinSpawner->GetComponent<CoinSpawner>();
-
-    if (!spawner) {
-        return;
-    }
-
-    spawner->coinsStorage = &coins;
+    coinSpawner->GetComponent<CoinSpawner>()->Start();
     coins.push_back(new Coin(700, 100));
     coins.push_back(new Coin(100, 500));
     coins.push_back(new Coin(650, 450));
@@ -96,7 +89,8 @@ Game::~Game() {
 
 void Game::Update(float deltaTime) {
     player->Update(deltaTime);
-	coinSpawner->Update(deltaTime);
+    coinSpawner->GetComponent<CoinSpawner>()->coinsStorage = &coins;
+	coinSpawner->GetComponent<CoinSpawner>()->Update(deltaTime);
     // collison
     for (auto* coin : coins) {
         if (coin->IsActive() &&
@@ -104,7 +98,10 @@ void Game::Update(float deltaTime) {
             player->x + player->width > coin->x &&
             player->y < coin->y + coin->height &&
             player->y + player->height > coin->y) {
-            coin->SetActive(false);
+			coin->SetActive(false);
+			coin->Destroy();
+			coins.erase(std::remove(coins.begin(), coins.end(), coin), coins.end());
+
             score++;
 
             textRenderer->SetText("Score: " + std::to_string(score));
